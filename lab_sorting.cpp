@@ -23,6 +23,7 @@ using namespace std;
 
 int quickSort(int* Array, int begin, int end, int* answer); // Быстрая сортировка
 int Partition(int* Array, int begin, int end, int* answer); // Входит в быструю сортировку
+int Insertion_Sort(int* Array, int len); // Сортировка вставкой
 void generate(int* array, int len); // Генерация нового массива
 void linearAscendINT(int* Array, int len); //Генерация возрастающей последовательности
 void linearDescendINT(int* Array, int len); //Генерация убывающей последовательности
@@ -44,6 +45,9 @@ int* main_array; // массив
 int allLengths[4] = { 15, 10000, 50000, 100000 };
 int lenMain;
 
+int test[15];
+int len = 15;
+
 /*********************************************************************
  *              Г Л А В Н А Я   П Р О Г Р А М М А                    *
  *********************************************************************/
@@ -54,7 +58,12 @@ int main()
     // TODO: проблема с размером 100000
     // TODO: промежуточные вычисления
     // TODO: запись в файл так, чтобы можно было получить табличку
-    
+
+    linearDescendINT(test, len);
+    int srav = Insertion_Sort(test, len);
+    printArray(test, len);
+    cout << endl <<"сравнения = "<< srav << endl;
+
     for (int i = 0; i < 4; i++) {
         lenMain = allLengths[i];
         cout << "Длина массива = " << lenMain << endl;
@@ -79,7 +88,6 @@ int main()
 
         }
     }
-    
 
 } // main
 
@@ -172,3 +180,19 @@ void noteRes(const char* filename, int lenArray, int time, int is_compare)
 
     fout.close();
 } // void noteRes
+
+int Insertion_Sort(int* Array,int len) {
+    int counter = 0; // перестановки
+    int srav = 0; // сравнения
+    for (int i = 0; i < len; i++) {
+        for (int j = i; j > 0 && Array[j - 1] > Array[j]; j--) {
+            srav += 2;
+            counter++;
+            int tmp = Array[j - 1];
+            Array[j - 1] = Array[j];
+            Array[j] = tmp;
+        }
+        srav++;
+    }
+    return srav;
+}
