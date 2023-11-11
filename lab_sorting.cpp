@@ -20,9 +20,9 @@ using namespace std;
 /*********************************************************************
  *              П Р О Т О Т И П Ы    Ф У Н К Ц И Й                   *
  *********************************************************************/
-void Insertion_Sort(int* Array, int len, unsigned _int64* answer); // Сортировка вставкой
-void quickSort(int* Array, int begin, int end, unsigned _int64* answer); // Быстрая сортировка
-void Partition(int Array[], int l, int r, int& Equals, int& Greater, unsigned _int64* answer); // Входит в быструю сортировку
+void Insertion_Sort(int* Array, int len, unsigned __int64* answer); // Сортировка вставкой
+void quickSort(int* Array, int begin, int end, unsigned __int64* answer, int len); // Быстрая сортировка
+void Partition(int* Array, int begin, int end, int& Q, int& greaterQ, unsigned __int64* answer, int len); // Входит в быструю сортировку
 void generate(int* array, int len); // Генерация нового массива
 void linearAscendINT(int* Array, int len); //Генерация возрастающей последовательности
 void linearDescendINT(int* Array, int len); //Генерация убывающей последовательности
@@ -34,18 +34,17 @@ void noteRes(const char* filename, int lenArray, int time, int is_compare); // �
 /*******************************************************************/
 
 // К О Н С Т А Н Т Ы
-
+const int arrLenQuant = 4; // Кол-во размеров
+const int arrQuant = 3; // Кол-во случаев массивов
+const int answerLen = 3; 
 
 
 // П Е Р Е М Е Н Н Ы Е
-void(*func_array[3])(int*, int) = { generate, linearAscendINT, linearDescendINT }; // МАССИВ ФУНКЦИЙ ФОРМИРОВАНИЯ МАССИВОВ
-unsigned _int64 answer[3] = { 0, 0, 0 }; // Результат работы алгоритма: время, количество сравнений и перестановок
+void(*func_array[arrQuant])(int*, int) = { generate, linearAscendINT, linearDescendINT }; // МАССИВ ФУНКЦИЙ ФОРМИРОВАНИЯ МАССИВОВ
+unsigned _int64 answer[answerLen] = { 0, 0, 0 }; // Результат работы алгоритма: время, количество сравнений и перестановок
 int* main_array; // массив
-int allLengths[4] = { 15, 10000, 50000, 100000 };
+int allLengths[arrLenQuant] = { 15, 10000, 50000, 100000 }; // Массив размерностей
 int lenMain;
-
-int test[15];
-int len = 15;
 
 /*********************************************************************
  *              Г Л А В Н А Я   П Р О Г Р А М М А                    *
@@ -54,14 +53,12 @@ int len = 15;
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    // TODO: проблема с размером 100000 => ключевой элемент ставить либо в середину, либо как у Вадима (он еще интересную хрень про это скинул)
     // TODO: промежуточные вычисления
-    // TODO: запись в файл так, чтобы можно было получить табличку
 
-    for (int i = 0; i < 4; i++) {
-        lenMain = allLengths[i];
-        cout <<endl<< "Длина массива = " << lenMain << endl;
-        for (int j = 0; j < 3; j++)
+    for (int i = 0; i < arrLenQuant; i++) {
+        lenMain = allLengths[i]; // Длина массива
+        cout << "Длина массива = " << lenMain << endl;
+        for (int j = 0; j < arrQuant; j++)
         {
             cout << endl << "последовательность  " << j << endl;
             // Быстрая сортировка
@@ -71,13 +68,13 @@ int main()
             answer[2] = 0;
             func_array[j](main_array, lenMain);
 
+            cout << "БЫСТРАЯ СОРТИРОВКА" << endl;
+            if (lenMain == 15) printArray(main_array, lenMain);; // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
             auto begin = std::chrono::steady_clock::now();
-            quickSort(main_array, 0, lenMain - 1, answer);
+            quickSort(main_array, 0, lenMain - 1, answer, lenMain); // СОРТИРОВКА QS
             auto end = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
-
-            if (lenMain == 15) printArray(main_array, lenMain);
             cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
@@ -86,13 +83,14 @@ int main()
             answer[2] = 0;
             func_array[j](main_array, lenMain);
 
+            cout << "СОРТИРОВКА ВСТАВКОЙ" << endl;
+            if (lenMain == 15) printArray(main_array, lenMain); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
             begin = std::chrono::steady_clock::now();
-            Insertion_Sort(main_array, lenMain, answer);
+            Insertion_Sort(main_array, lenMain, answer); // СОРТИРОВКА IS
             end = std::chrono::steady_clock::now();
             elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
 
-            if (lenMain == 15) printArray(main_array, lenMain);
             cout << "Время работы IS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
 
@@ -107,44 +105,47 @@ int main()
  *                Р Е А Л И З А Ц И Я    Ф У Н К Ц И Й                 *
  ***********************************************************************/
 
-void quickSort(int* Array, int begin, int end, unsigned _int64* answer)
+void quickSort(int* Array, int begin, int end, unsigned __int64* answer, int len)
 {
-    if (end - begin < 1) return;
-    answer[1]++; // Счет сравнений
-
-    int Equals = begin, Greater = begin;
-    Partition(Array, begin, end, Equals, Greater, answer);
-    // cout << begin << " " << qIndex << " " << end << endl; 
-    quickSort(Array, begin, Equals - 1, answer);
-    quickSort(Array, Greater, end, answer);
+    if (begin >= end || end < 0 || begin < 0) return;
+    answer[1]+=3; // Счет сравнений
+    int qIndex = begin; // Индекс с ключевым элементом
+    int greaterIndex = begin; // Индекс ближайшего к ключевому элементу числа, большего ключевого
+    Partition(Array, begin, end, qIndex, greaterIndex, answer, len);
+    // Т.о., Между qIndex и greaterIndex остаются элементы, равные ключевому, их не рассматриваем.
+    quickSort(Array, begin, qIndex - 1, answer, len);
+    quickSort(Array, greaterIndex + 1, end, answer, len);
 } // quickSort
 
-//разбиение
-void Partition(int Array[], int l, int r, int& Equals, int& Greater, unsigned _int64* answer) {
-    //n - длина разбиваемой части массива, pivot - случайный опорный элемент из массива
-    int n = r - l + 1, pivot = Array[rand() % n + l];
-    int Now = l; //индекс текущего элемента
-    Equals = l; //стартуем с l
-    Greater = l;
+ 
+void Partition(int* Array, int begin, int end, int&Q, int&greaterQ, unsigned __int64* answer, int len)
+{
+    int n = (end - begin) + 1; // Длина подмассива
+    int pivot = Array[rand() % n + begin]; // Случайное ключевое значение
+    if (len == 15) cout << "pivot = " << pivot << endl; // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
 
-    while (Now <= r) {
-        answer[1] += 3; //цикл + 2 условия
-        if (Array[Now] == pivot) { //добавляем к элементам, равным опорному
-            swap(Array[Now], Array[Greater]);
-            Greater++;
-            answer[2]++;
-        }
-        if (Array[Now] < pivot) { //добавляем к элементам, строго меньшим опорного
-            swap(Array[Now], Array[Greater]);
-            swap(Array[Greater], Array[Equals]);
-            Greater++;
-            Equals++;
-            answer[2] += 2;
-        }
-        Now++;
-    }
-    answer[1]++;//последнее сравнение, когда не входим в цикл
-}
+    for (int u = begin; u <= end; u++) // Цикл по области U
+    {
+        if (Array[u] == pivot) // Равные элементы не попадают в область L
+        {
+            swap(Array[u], Array[greaterQ]);
+            greaterQ++;
+            answer[2]++; // Счет перестановок
+            if (len == 15) printArray(Array, len); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
+        } // if
+        if (Array[u] < pivot)  // Перемещение в область L
+        {
+            swap(Array[u], Array[greaterQ]);
+            swap(Array[greaterQ], Array[Q]);
+            greaterQ++;
+            Q++;
+            answer[2]+=2; // Счет перестановок
+            if (len == 15) printArray(Array, len); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
+        } // if
+        answer[1] += 3; // Счет сравнений
+    } // for u
+
+} // Partition
 
 void generate(int* array, int len)
 {
@@ -153,7 +154,6 @@ void generate(int* array, int len)
         array[i] = rand();
     } // for i
 } // generate
-
 
 void linearAscendINT(int* Array, int len)
 {
@@ -188,18 +188,7 @@ void printArray(int* Array, int len)
     cout << endl;
 } // printArray
 
-void noteRes(const char* filename, int lenArray, int time, int is_compare)
-{
-    ofstream fout(filename, ios::app);
-    fout << lenArray << " " << time;
-
-    if (is_compare) fout << " " << is_compare << "\n"; // Если BLS/SLS, то значение, возвращаемое функцией, и есть количество сравнений
-    else fout << "\n";
-
-    fout.close();
-} // void noteRes
-
-void Insertion_Sort(int* Array, int len, unsigned _int64* answer) {
+void Insertion_Sort(int* Array, int len, unsigned __int64* answer) {
     for (int i = 0; i < len; i++) {
         for (int j = i; j > 0 && Array[j - 1] > Array[j]; j--) {
             answer[1] += 2;
