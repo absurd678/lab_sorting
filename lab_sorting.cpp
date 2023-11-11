@@ -60,31 +60,36 @@ int main()
 
     for (int i = 0; i < 4; i++) {
         lenMain = allLengths[i];
-        cout << "Длина массива = " << lenMain << endl;
+        cout <<endl<< "Длина массива = " << lenMain << endl;
         for (int j = 0; j < 3; j++)
         {
+            cout << endl << "последовательность  " << j << endl;
             // Быстрая сортировка
             main_array = new int[lenMain];
-            memset(answer, 0, 3); // Обнуление массива answer
+            answer[0] = 0;
+            answer[1] = 0;
+            answer[2] = 0;
             func_array[j](main_array, lenMain);
 
             auto begin = std::chrono::steady_clock::now();
             quickSort(main_array, 0, lenMain - 1, answer);
             auto end = std::chrono::steady_clock::now();
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
 
             if (lenMain == 15) printArray(main_array, lenMain);
             cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
-            memset(answer, 0, 3); // Обнуление массива answer
+            answer[0] = 0;
+            answer[1] = 0;
+            answer[2] = 0;
             func_array[j](main_array, lenMain);
 
             begin = std::chrono::steady_clock::now();
             Insertion_Sort(main_array, lenMain, answer);
             end = std::chrono::steady_clock::now();
-            elapsed_ms = std::chrono::duration_cast<std::chrono::seconds>(end - begin);
+            elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
 
             if (lenMain == 15) printArray(main_array, lenMain);
