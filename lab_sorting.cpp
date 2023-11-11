@@ -55,7 +55,7 @@ int len = 15;
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    // TODO: проблема с размером 100000
+    // TODO: проблема с размером 100000 => ключевой элемент ставить либо в середину, либо как у Вадима (он еще интересную хрень про это скинул)
     // TODO: промежуточные вычисления
     // TODO: запись в файл так, чтобы можно было получить табличку
 
@@ -73,7 +73,6 @@ int main()
             main_array = new int[lenMain];
             memset(answer, 0, 3); // Обнуление массива answer
             func_array[j](main_array, lenMain);
-            //printArray(main_array, lenMain);
 
             auto begin = std::chrono::steady_clock::now();
             quickSort(main_array, 0, lenMain - 1, answer);
@@ -81,11 +80,12 @@ int main()
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
 
-            //printArray(main_array, lenMain);
+            if (lenMain == 15) printArray(main_array, lenMain);
             cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
 
+            delete[] main_array;
         }
     }
 
@@ -96,37 +96,44 @@ int main()
  *                Р Е А Л И З А Ц И Я    Ф У Н К Ц И Й                 *
  ***********************************************************************/
 
-int quickSort(int* Array, int begin, int end, int* answer)
+void quickSort(int* Array, int begin, int end, int* answer)
 {
-    if (begin >= end) return begin;
+    if (end - begin < 1) return;
     answer[1]++; // Счет сравнений
-    int qIndex = Partition(Array, begin, end, answer);
-    quickSort(Array, begin, qIndex - 1, answer);
-    quickSort(Array, qIndex+1, end, answer);
+
+    int Equals = begin, Greater = begin;
+    Partition(Array, begin, end, Equals, Greater, answer);
+    // cout << begin << " " << qIndex << " " << end << endl; 
+    quickSort(Array, begin, Equals - 1, answer);
+    quickSort(Array, Greater, end, answer);
 } // quickSort
 
-int Partition(int* Array, int begin, int end, int* answer)
-{ // Проблема на размере 100000
-    int qIndex = begin;
-    int t;
-    for (int u = begin; u < end; u++)
-    {
-        if (Array[u] <= Array[end])
-        {
-            t = Array[u];
-            Array[u] = Array[qIndex];
-            Array[qIndex] = t;
-            qIndex++;
-            answer[2]++; // Счет перестановок
-        } // if
-        answer[1] += 2; // Счет сравнений
-    } // for u
-    t = Array[end];
-    Array[end] = Array[qIndex];
-    Array[qIndex] = t;
-    answer[2]++; // Счет перестановок
-    return qIndex;
-} // Partition
+//разбиение
+void Partition(int Array[], int l, int r, int& Equals, int& Greater, int* answer) {
+    //n - длина разбиваемой части массива, pivot - случайный опорный элемент из массива
+    int n = r - l + 1, pivot = Array[rand() % n + l];
+    int Now = l; //индекс текущего элемента
+    Equals = l; //стартуем с l
+    Greater = l;
+
+    while (Now <= r) {
+        answer[1] += 3; //цикл + 2 условия
+        if (Array[Now] == pivot) { //добавляем к элементам, равным опорному
+            swap(Array[Now], Array[Greater]);
+            Greater++;
+            answer[2]++;
+        }
+        if (Array[Now] < pivot) { //добавляем к элементам, строго меньшим опорного
+            swap(Array[Now], Array[Greater]);
+            swap(Array[Greater], Array[Equals]);
+            Greater++;
+            Equals++;
+            answer[2] += 2;
+        }
+        Now++;
+    }
+    answer[1]++;//последнее сравнение, когда не входим в цикл
+}
 
 void generate(int* array, int len)
 {
@@ -140,9 +147,9 @@ void generate(int* array, int len)
 void linearAscendINT(int* Array, int len)
 {
     int inf = 0;
-    int sup = 32767;
-    double coeff = (abs(sup - inf) * 1.0) / len; // Угловой коэффициент 
-    int Const = inf; // На сколько поднять/опустить
+    int sup = 100000;
+    double coeff = (-1)*(abs(sup - inf) * 1.0) / len; // Угловой коэффициент
+    int Const = sup; // На сколько поднять/опустить
     for (int i = 0; i < len; i++)
     {
         Array[i] = coeff * i + Const; // Отбрасываем дробную часть
@@ -152,7 +159,7 @@ void linearAscendINT(int* Array, int len)
 void linearDescendINT(int* Array, int len)
 {
     int inf = 0;
-    int sup = 32767;
+    int sup = 100000;
     double coeff = (-1)*(abs(sup - inf) * 1.0) / len; // Угловой коэффициент 
     int Const = sup; // На сколько поднять/опустить
     for (int i = 0; i < len; i++)
