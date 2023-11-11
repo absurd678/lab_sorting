@@ -60,7 +60,7 @@ int main()
         cout << "Длина массива = " << lenMain << endl;
         for (int j = 0; j < arrQuant; j++)
         {
-            cout << endl << "последовательность  " << j << endl;
+            cout << endl << "Последовательность №" << j << endl;
             // Быстрая сортировка
             main_array = new int[lenMain];
             answer[0] = 0;
@@ -75,8 +75,8 @@ int main()
             auto end = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
-            if (lenMain == 15) printArray(main_array, lenMain);
-            cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
+            if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); }
+            //cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
             answer[0] = 0;
@@ -91,8 +91,8 @@ int main()
             end = std::chrono::steady_clock::now();
             elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
-
-            cout << "Время работы IS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
+            if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); }
+            //cout << "Время работы IS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
 
             delete[] main_array;
@@ -197,6 +197,7 @@ void Insertion_Sort(int* Array, int len, unsigned __int64* answer) {
             int tmp = Array[j - 1];
             Array[j - 1] = Array[j];
             Array[j] = tmp;
+            if (len == 15) printArray(Array, len); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
         }
         answer[1]++;
     }
