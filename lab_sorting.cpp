@@ -75,6 +75,7 @@ int main()
             auto end = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
+            if (lenMain == 15) printArray(main_array, lenMain);
             cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
@@ -114,7 +115,7 @@ void quickSort(int* Array, int begin, int end, unsigned __int64* answer, int len
     Partition(Array, begin, end, qIndex, greaterIndex, answer, len);
     // Т.о., Между qIndex и greaterIndex остаются элементы, равные ключевому, их не рассматриваем.
     quickSort(Array, begin, qIndex - 1, answer, len);
-    quickSort(Array, greaterIndex + 1, end, answer, len);
+    quickSort(Array, greaterIndex, end, answer, len);
 } // quickSort
 
  
