@@ -39,7 +39,7 @@ void noteRes(const char* filename, int lenArray, int time, int is_compare); // �
 
 // П Е Р Е М Е Н Н Ы Е
 void(*func_array[3])(int*, int) = {generate, linearAscendINT, linearDescendINT}; // МАССИВ ФУНКЦИЙ ФОРМИРОВАНИЯ МАССИВОВ
-int answer[3] = {0, 0, 0 }; // Результат работы алгоритма: время, количество сравнений и перестановок
+int answer[3] = { 0, 0, 0 }; // Результат работы алгоритма: время, количество сравнений и перестановок
 int* main_array; // массив
 int allLengths[4] = { 15, 10000, 50000, 100000 };
 int lenMain;
@@ -51,7 +51,7 @@ int lenMain;
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    // TODO: проблема с размером 100000
+    // TODO: проблема с размером 10000 Я ХЗ
     // TODO: промежуточные вычисления
     // TODO: запись в файл так, чтобы можно было получить табличку
     
@@ -64,16 +64,17 @@ int main()
             main_array = new int[lenMain];
             memset(answer, 0, 3); // Обнуление массива answer
             func_array[j](main_array, lenMain);
-            //printArray(main_array, lenMain);
+            //if (lenMain == 15) printArray(main_array, lenMain);
+            cout << "Случай массива (j): " << j << endl;
 
             auto begin = std::chrono::steady_clock::now();
             quickSort(main_array, 0, lenMain - 1, answer);
             auto end = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
-
-            //printArray(main_array, lenMain);
-            cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
+            cout << endl;
+            //if (lenMain == 15) printArray(main_array, lenMain);
+            //cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
             // Сортировка вставкой
 
@@ -90,31 +91,42 @@ int main()
 
 int quickSort(int* Array, int begin, int end, int* answer)
 {
-    if (begin >= end) return begin;
+    //cout << "begin = " << begin << " end = " << end << endl;
+    if (begin >= end || end < 0 || begin < 0) return 0;
     answer[1]++; // Счет сравнений
-    int qIndex = Partition(Array, begin, end, answer);
+    int qIndex = begin; int greaterIndex = begin;
+    Partition(Array, begin, end, answer);
     quickSort(Array, begin, qIndex - 1, answer);
     quickSort(Array, qIndex+1, end, answer);
 } // quickSort
 
-int Partition(int* Array, int begin, int end, int* answer)
-{ // Проблема на размере 100000
-    int qIndex = begin;
-    int t;
-    for (int u = begin; u < end; u++)
+ 
+int Partition(int* Array, int begin, int end, int&Q, int&greaterQ, int* answer)
+{ // Проблема на размере 10000
+    int n = (end - begin) + 1;
+    //int qIndex = begin; 
+    int pivot = rand() % n + begin; // Работает до 50000, БЛЯТЬ! Наверное, идея с Greater тоже влияет -- использовать ее
+    int t = 0;
+    for (int u = begin; u <= end; u++)
     {
-        if (Array[u] <= Array[end])
+        if (Array[u] == Array[pivot])
         {
-            t = Array[u];
-            Array[u] = Array[qIndex];
-            Array[qIndex] = t;
-            qIndex++;
+            swap(Array[u], Array[greaterQ]);
+            greaterQ++;
             answer[2]++; // Счет перестановок
         } // if
-        answer[1] += 2; // Счет сравнений
+        if (Array[u] < Array[pivot])
+        {
+            swap(Array[u], Array[greaterQ]);
+            swap(Array[greaterQ], Array[Q]);
+            greaterQ++;
+            Q++;
+            answer[2]+=2; // Счет перестановок
+        } // if
+        answer[1] += 3; // Счет сравнений
     } // for u
-    t = Array[end];
-    Array[end] = Array[qIndex];
+    t = Array[pivot];
+    Array[pivot] = Array[qIndex];
     Array[qIndex] = t;
     answer[2]++; // Счет перестановок
     return qIndex;
@@ -132,7 +144,7 @@ void generate(int* array, int len)
 void linearAscendINT(int* Array, int len)
 {
     int inf = 0;
-    int sup = 32767;
+    int sup = INT_MAX;
     double coeff = (abs(sup - inf) * 1.0) / len; // Угловой коэффициент 
     int Const = inf; // На сколько поднять/опустить
     for (int i = 0; i < len; i++)
@@ -144,7 +156,7 @@ void linearAscendINT(int* Array, int len)
 void linearDescendINT(int* Array, int len)
 {
     int inf = 0;
-    int sup = 32767;
+    int sup = INT_MAX;
     double coeff = (-1)*(abs(sup - inf) * 1.0) / len; // Угловой коэффициент 
     int Const = sup; // На сколько поднять/опустить
     for (int i = 0; i < len; i++)
