@@ -23,6 +23,7 @@ using namespace std;
 void Insertion_Sort(int* Array, int len, unsigned __int64* answer); // Сортировка вставкой
 void quickSort(int* Array, int begin, int end, unsigned __int64* answer, int len); // Быстрая сортировка
 void Partition(int* Array, int begin, int end, int& Q, int& greaterQ, unsigned __int64* answer, int len); // Входит в быструю сортировку
+int findOptimalQ(int* Array, int begin, int end, unsigned __int64* answer); // ~*NEW*~ поиск к-й порядковой статистики
 void generate(int* array, int len); // Генерация нового массива
 void linearAscendINT(int* Array, int len); //Генерация возрастающей последовательности
 void linearDescendINT(int* Array, int len); //Генерация убывающей последовательности
@@ -53,8 +54,7 @@ int lenMain;
 int main()
 {
     setlocale(LC_ALL, "Russian");
-    // TODO: промежуточные вычисления
-
+  
     for (int i = 0; i < arrLenQuant; i++) {
         lenMain = allLengths[i]; // Длина массива
         cout << "Длина массива = " << lenMain << endl;
@@ -75,23 +75,23 @@ int main()
             auto end = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
             answer[0] = elapsed_ms.count();
-            if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); }
-            //cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
+            if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); } // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
+            cout << "Время работы QS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
-            // Сортировка вставкой
-            answer[0] = 0;
-            answer[1] = 0;
-            answer[2] = 0;
-            func_array[j](main_array, lenMain);
+            // Сортировка вставкой ЧЕМОДАН ВОКЗАЛ НАХУЙ
+            //answer[0] = 0;
+            //answer[1] = 0;
+            //answer[2] = 0;
+            //func_array[j](main_array, lenMain);
 
-            cout << "СОРТИРОВКА ВСТАВКОЙ" << endl;
-            if (lenMain == 15) printArray(main_array, lenMain); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
-            begin = std::chrono::steady_clock::now();
-            Insertion_Sort(main_array, lenMain, answer); // СОРТИРОВКА IS
-            end = std::chrono::steady_clock::now();
-            elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-            answer[0] = elapsed_ms.count();
-            if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); }
+            //cout << "СОРТИРОВКА ВСТАВКОЙ" << endl;
+            //if (lenMain == 15) printArray(main_array, lenMain); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
+            //begin = std::chrono::steady_clock::now();
+            //Insertion_Sort(main_array, lenMain, answer); // СОРТИРОВКА IS
+            //end = std::chrono::steady_clock::now();
+            //elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+            //answer[0] = elapsed_ms.count();
+            //if (lenMain == 15) { cout << "РЕЗУЛЬТАТ: " << endl; printArray(main_array, lenMain); } // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
             //cout << "Время работы IS: " << answer[0] << " Количество сравнений: " << answer[1] << " Количество перестановок: " << answer[2] << endl;
 
 
@@ -111,42 +111,60 @@ void quickSort(int* Array, int begin, int end, unsigned __int64* answer, int len
     if (begin >= end || end < 0 || begin < 0) return;
     answer[1]+=3; // Счет сравнений
     int qIndex = begin; // Индекс с ключевым элементом
-    int greaterIndex = begin; // Индекс ближайшего к ключевому элементу числа, большего ключевого
-    Partition(Array, begin, end, qIndex, greaterIndex, answer, len);
+    //int greaterIndex = begin; // Индекс ближайшего к ключевому элементу числа, большего ключевого
+    Partition(Array, begin, end, qIndex, answer, len);
     // Т.о., Между qIndex и greaterIndex остаются элементы, равные ключевому, их не рассматриваем.
     quickSort(Array, begin, qIndex - 1, answer, len);
-    quickSort(Array, greaterIndex, end, answer, len);
+    quickSort(Array, qIndex, end, answer, len);
 } // quickSort
 
  
-void Partition(int* Array, int begin, int end, int&Q, int&greaterQ, unsigned __int64* answer, int len)
+void Partition(int* Array, int begin, int end, int&Q, unsigned __int64* answer, int len)
 {
     int n = (end - begin) + 1; // Длина подмассива
-    int pivot = Array[rand() % n + begin]; // Случайное ключевое значение
-    if (len == 15) cout << "pivot = " << pivot << endl; // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
+    int pivot = 0;
+
+    if (n <= 5) { pivot = Array[rand() % n + begin]; cout << "Подмассив длиной <= 5" << endl; } // Случайное ключевое значение
+    else pivot = findOptimalQ(Array, begin, end, answer); // ~* Ищем оптимальную k-ю статистику *~ 
+
+    if (len == 15 && n > 5) cout << "pivot = " << pivot << endl; // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
 
     for (int u = begin; u <= end; u++) // Цикл по области U
     {
-        if (Array[u] == pivot) // Равные элементы не попадают в область L
+        if (Array[u] <= pivot)  // Перемещение в область L
         {
-            swap(Array[u], Array[greaterQ]);
-            greaterQ++;
-            answer[2]++; // Счет перестановок
-            if (len == 15) printArray(Array, len); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
-        } // if
-        if (Array[u] < pivot)  // Перемещение в область L
-        {
-            swap(Array[u], Array[greaterQ]);
-            swap(Array[greaterQ], Array[Q]);
-            greaterQ++;
+            swap(Array[u], Array[Q]);
             Q++;
-            answer[2]+=2; // Счет перестановок
+            answer[2]+=1; // Счет перестановок
             if (len == 15) printArray(Array, len); // ПРОМЕЖУТОЧНЫЕ ВЫЧИСЛЕНИЯ
         } // if
-        answer[1] += 3; // Счет сравнений
+        answer[1] += 2; // Счет сравнений
     } // for u
 
 } // Partition
+
+// Ошибка...
+int findOptimalQ(int* Array, int begin, int end, unsigned __int64* answer)  // Ищем оптимальный промежуточный элемент, который
+// разобьет подмассив на две части
+{
+    int lenArr = (end - begin + 1); // Длина подмассива
+    // Разбиваем массив на 5 частей, находим медианы этих подподмассивов, записываем их в массив медиан
+    int medianAmout = lenArr / 5 + 1; 
+    if (lenArr % 5 == 0) medianAmout--;
+    int* medians = new int[medianAmout];
+    for (int i = 1; i < medianAmout+1; i++)
+    {
+        int a = begin + 5 * i;
+        int b = a + 4;
+        if (b > end) b = end;
+        quickSort(Array, a, b, answer, lenArr);
+        medians[i - 1] = Array[a + (b - a) / a];
+    }
+    // Находим медиану массива медиан, это и есть то, что нужно
+    quickSort(medians, 0, medianAmout - 1, answer, medianAmout);
+    int pivotIdx = medianAmout / 2;
+    return medians[pivotIdx];
+}
 
 void generate(int* array, int len)
 {
